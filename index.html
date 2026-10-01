@@ -49,14 +49,12 @@
     .login-panel { align-self: center; padding: 42px 48px; }
     .login-panel h1 { font-size: 24px; margin: 8px 0 7px; }
     .login-intro { color: var(--muted); font-size: 11px; line-height: 1.6; margin-bottom: 18px; }
-    .login-warning { padding: 11px 12px; border: 1px solid #f0dfb9; border-radius: 8px; background: #fff8e9; color: #755b28; font-size: 9px; line-height: 1.55; margin-bottom: 18px; }
+    .login-warning { padding: 11px 12px; border: 1px solid #f0dfb9; border-radius: 8px; background: #fff8e9; color: #755b28; font-size: 9px; line-height: 1.55; margin-bottom: 15px; }
     .login-warning strong { display: block; margin-bottom: 2px; }
-    .login-form { display: grid; gap: 13px; }
-    .login-field { display: grid; gap: 6px; }
-    .login-field label { color: #34443a; font-size: 10px; font-weight: 700; }
-    .login-field input { width: 100%; height: 42px; padding: 0 11px; border: 1px solid #dfe5df; border-radius: 7px; outline: none; color: var(--ink); font-size: 11px; }
-    .login-field input:focus { border-color: #5a9276; box-shadow: 0 0 0 3px rgba(57,116,85,.10); }
-    .login-submit { width: 100%; margin-top: 3px; }
+    .google-signin-container { min-height: 42px; }
+    .login-divider { display: flex; align-items: center; gap: 10px; color: #98a29b; font-size: 9px; margin: 13px 0; }
+    .login-divider::before, .login-divider::after { content: ''; height: 1px; flex: 1; background: var(--line); }
+    .login-submit { width: 100%; }
     .login-help { color: #8b968f; font-size: 9px; line-height: 1.6; margin: 14px 0 0; text-align: center; }
     .login-help strong { color: var(--forest-2); }
     .logout-button { border: 1px solid var(--line); border-radius: 8px; background: white; color: #536057; padding: 8px 10px; font-size: 10px; font-weight: 700; }
@@ -299,14 +297,13 @@
       <section class="login-panel" aria-labelledby="login-title">
         <div class="eyebrow">Student portal sign-in</div>
         <h1 id="login-title">Sign in to FastTrack</h1>
-        <p class="login-intro">Enter sample details to preview the student dashboard.</p>
-        <div class="login-warning" role="note"><strong>Prototype sign-in only</strong>This is not connected to the official PLMun Student Portal. Do not enter your real student number or password. Sample values stay in this browser and are not sent to a server.</div>
-        <form class="login-form" id="login-form">
-          <div class="login-field"><label for="sample-student-id">Sample student ID</label><input id="sample-student-id" name="student-id" type="text" placeholder="e.g. 2023-01234" autocomplete="off" required></div>
-          <div class="login-field"><label for="demo-passcode">Demo passcode</label><input id="demo-passcode" name="passcode" type="password" placeholder="Any sample passcode" autocomplete="new-password" required></div>
-          <button class="button primary login-submit" type="submit">Continue to demo <span aria-hidden="true">→</span></button>
-        </form>
-        <p class="login-help"><strong>Demo access:</strong> Any sample ID and passcode will open the prototype. No account is authenticated.</p>
+        <p class="login-intro">Use Google Sign-In, or preview the prototype without an account.</p>
+        <div class="login-warning" role="note"><strong>Your password stays with Google</strong>FastTrack never asks for or stores your Gmail password. This prototype is separate from the official PLMun Student Portal and only shows sample records.</div>
+        <div class="google-signin-container" id="google-signin-container" hidden></div>
+        <div class="login-warning" id="google-config-notice" role="status"><strong>Google Sign-In needs setup</strong>A Google OAuth Web Client ID must be registered for this public website before Google sign-in can be enabled.</div>
+        <div class="login-divider"><span>or</span></div>
+        <button class="button secondary login-submit" id="demo-access-button" type="button">Preview prototype</button>
+        <p class="login-help"><strong>Prototype only:</strong> Preview access does not verify a student account or open actual PLMun records.</p>
       </section>
     </div>
   </main>
@@ -398,6 +395,7 @@
   <script>
     const storageKey = 'fasttrack-plmun-requests-v1';
     const sessionKey = 'fasttrack-plmun-demo-session';
+    const googleClientId = '';
     document.body.classList.toggle('is-authenticated', sessionStorage.getItem(sessionKey) === 'active');
     const seedRequests = [
       { id: 'FT-2026-0842', document: 'Transcript of Records (TOR)', copies: 1, submitted: '2026-09-24', pickup: '2026-10-02', time: '9:00 AM – 11:00 AM', status: 'Processing', purpose: 'Further studies' },
@@ -485,13 +483,31 @@
     }
     document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => navigate(button.dataset.view)));
     document.querySelectorAll('[data-go]').forEach(button => button.addEventListener('click', () => navigate(button.dataset.go)));
-    document.getElementById('login-form').addEventListener('submit', event => {
-      event.preventDefault();
-      if (!event.currentTarget.reportValidity()) return;
+    function openDemoSession() {
       sessionStorage.setItem(sessionKey, 'active');
-      event.currentTarget.reset();
       document.body.classList.add('is-authenticated');
-    });
+    }
+    document.getElementById('demo-access-button').addEventListener('click', openDemoSession);
+    function configureGoogleSignIn() {
+      if (!googleClientId) return;
+      const signInContainer = document.getElementById('google-signin-container');
+      document.getElementById('google-config-notice').hidden = true;
+      signInContainer.hidden = false;
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.onload = () => {
+        window.google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: response => {
+            if (response.credential) openDemoSession();
+          }
+        });
+        window.google.accounts.id.renderButton(signInContainer, { theme: 'outline', size: 'large', text: 'continue_with', shape: 'rectangular', width: 320 });
+      };
+      document.head.appendChild(script);
+    }
+    configureGoogleSignIn();
     document.getElementById('logout-button').addEventListener('click', () => {
       sessionStorage.removeItem(sessionKey);
       document.body.classList.remove('is-authenticated');
