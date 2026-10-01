@@ -30,7 +30,37 @@
     body { margin: 0; min-width: 320px; min-height: 100vh; }
     button, input, select, textarea { font: inherit; }
     button { cursor: pointer; }
-    .app { min-height: 100vh; display: flex; }
+    .app { min-height: 100vh; display: none; }
+    body.is-authenticated .app { display: flex; }
+    body.is-authenticated .login-screen { display: none; }
+    .login-screen { min-height: 100vh; display: grid; place-items: center; padding: 30px; background: #eef1eb; }
+    .login-card { width: min(100%, 900px); min-height: 510px; display: grid; grid-template-columns: .92fr 1.08fr; overflow: hidden; border: 1px solid #e2e8e1; border-radius: 14px; background: white; box-shadow: var(--shadow); }
+    .login-identity { padding: 34px; display: flex; flex-direction: column; justify-content: space-between; color: white; background: var(--forest); position: relative; overflow: hidden; }
+    .login-identity::after { content: ''; position: absolute; width: 255px; height: 255px; border: 1px solid rgba(217,237,115,.25); border-radius: 50%; right: -120px; bottom: -125px; box-shadow: 0 0 0 22px rgba(217,237,115,.04), 0 0 0 44px rgba(217,237,115,.03); }
+    .login-brand { display: flex; align-items: center; gap: 11px; position: relative; z-index: 1; }
+    .login-brand .brand-mark { width: 42px; height: 42px; }
+    .login-brand-name { font: 800 16px 'Manrope', sans-serif; }
+    .login-brand-caption { color: #afc9bd; font-size: 10px; margin-top: 3px; }
+    .login-message { position: relative; z-index: 1; max-width: 330px; margin: 42px 0; }
+    .login-message .eyebrow { color: var(--leaf); }
+    .login-message h2 { font: 800 27px/1.25 'Manrope', sans-serif; margin: 10px 0; }
+    .login-message p { color: #c4d7ce; font-size: 11px; line-height: 1.7; margin: 0; }
+    .login-campus { color: #a8c2b5; font-size: 9px; letter-spacing: .5px; position: relative; z-index: 1; }
+    .login-panel { align-self: center; padding: 42px 48px; }
+    .login-panel h1 { font-size: 24px; margin: 8px 0 7px; }
+    .login-intro { color: var(--muted); font-size: 11px; line-height: 1.6; margin-bottom: 18px; }
+    .login-warning { padding: 11px 12px; border: 1px solid #f0dfb9; border-radius: 8px; background: #fff8e9; color: #755b28; font-size: 9px; line-height: 1.55; margin-bottom: 18px; }
+    .login-warning strong { display: block; margin-bottom: 2px; }
+    .login-form { display: grid; gap: 13px; }
+    .login-field { display: grid; gap: 6px; }
+    .login-field label { color: #34443a; font-size: 10px; font-weight: 700; }
+    .login-field input { width: 100%; height: 42px; padding: 0 11px; border: 1px solid #dfe5df; border-radius: 7px; outline: none; color: var(--ink); font-size: 11px; }
+    .login-field input:focus { border-color: #5a9276; box-shadow: 0 0 0 3px rgba(57,116,85,.10); }
+    .login-submit { width: 100%; margin-top: 3px; }
+    .login-help { color: #8b968f; font-size: 9px; line-height: 1.6; margin: 14px 0 0; text-align: center; }
+    .login-help strong { color: var(--forest-2); }
+    .logout-button { border: 1px solid var(--line); border-radius: 8px; background: white; color: #536057; padding: 8px 10px; font-size: 10px; font-weight: 700; }
+    .logout-button:hover { border-color: #bdc9c0; background: #fbfcfa; }
     .sidebar {
       width: 250px; flex: 0 0 250px; padding: 28px 17px 20px; color: #fff;
       background: var(--forest); display: flex; flex-direction: column; position: relative;
@@ -191,6 +221,10 @@
       .form-shell { grid-template-columns: minmax(0, 1fr) 240px; }
     }
     @media (max-width: 760px) {
+      .login-card { grid-template-columns: .82fr 1.18fr; }
+      .login-identity { padding: 27px; }
+      .login-panel { padding: 32px 28px; }
+      .login-message h2 { font-size: 23px; }
       .sidebar { width: 62px; flex-basis: 62px; padding: 18px 7px; align-items: center; }
       .brand { padding: 0; }
       .brand-copy, .side-label, .nav-label, .nav-count, .support-box, .profile-copy { display: none; }
@@ -211,6 +245,15 @@
       .fee-note { margin-top: 10px; }
     }
     @media (max-width: 520px) {
+      .login-screen { padding: 14px; align-items: start; }
+      .login-card { grid-template-columns: 1fr; min-height: 0; margin: auto 0; }
+      .login-identity { min-height: 170px; padding: 20px; }
+      .login-message { margin: 21px 0 0; }
+      .login-message h2 { font-size: 20px; margin: 6px 0; }
+      .login-message p { max-width: 320px; font-size: 10px; }
+      .login-campus { display: none; }
+      .login-panel { padding: 24px 20px; }
+      .login-panel h1 { font-size: 21px; }
       .content { padding: 20px 14px 32px; }
       .topbar { padding: 0 14px; }
       .office-status { display: none; }
@@ -246,6 +289,27 @@
   </style>
 </head>
 <body>
+  <main class="login-screen" id="login-screen">
+    <div class="login-card">
+      <section class="login-identity">
+        <div class="login-brand"><div class="brand-mark">F</div><div><div class="login-brand-name">FastTrack</div><div class="login-brand-caption">PLMun Registrar Services</div></div></div>
+        <div class="login-message"><div class="eyebrow">PLMun student access</div><h2>Your academic records, on your schedule.</h2><p>Request registrar documents, track progress, and plan your pick-up appointment in one place.</p></div>
+        <div class="login-campus">PAMANTASAN NG LUNGSOD NG MUNTINLUPA</div>
+      </section>
+      <section class="login-panel" aria-labelledby="login-title">
+        <div class="eyebrow">Student portal sign-in</div>
+        <h1 id="login-title">Sign in to FastTrack</h1>
+        <p class="login-intro">Enter sample details to preview the student dashboard.</p>
+        <div class="login-warning" role="note"><strong>Prototype sign-in only</strong>This is not connected to the official PLMun Student Portal. Do not enter your real student number or password. Sample values stay in this browser and are not sent to a server.</div>
+        <form class="login-form" id="login-form">
+          <div class="login-field"><label for="sample-student-id">Sample student ID</label><input id="sample-student-id" name="student-id" type="text" placeholder="e.g. 2023-01234" autocomplete="off" required></div>
+          <div class="login-field"><label for="demo-passcode">Demo passcode</label><input id="demo-passcode" name="passcode" type="password" placeholder="Any sample passcode" autocomplete="new-password" required></div>
+          <button class="button primary login-submit" type="submit">Continue to demo <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="login-help"><strong>Demo access:</strong> Any sample ID and passcode will open the prototype. No account is authenticated.</p>
+      </section>
+    </div>
+  </main>
   <div class="app">
     <aside class="sidebar">
       <div class="brand">
@@ -275,7 +339,7 @@
     <main class="main">
       <header class="topbar">
         <div class="crumb">Student portal <span aria-hidden="true">/</span> <strong id="breadcrumb">Overview</strong></div>
-        <div class="top-actions"><div class="office-status"><span class="status-dot"></span> Registrar office open</div><button class="icon-button" aria-label="Notifications" title="Notifications">♧<span class="ping"></span></button></div>
+        <div class="top-actions"><div class="office-status"><span class="status-dot"></span> Registrar office open</div><button class="icon-button" aria-label="Notifications" title="Notifications">♧<span class="ping"></span></button><button class="logout-button" id="logout-button" type="button">Sign out</button></div>
       </header>
       <div class="content">
         <section class="view active" id="view-dashboard" aria-labelledby="dashboard-title">
@@ -333,6 +397,8 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script>
     const storageKey = 'fasttrack-plmun-requests-v1';
+    const sessionKey = 'fasttrack-plmun-demo-session';
+    document.body.classList.toggle('is-authenticated', sessionStorage.getItem(sessionKey) === 'active');
     const seedRequests = [
       { id: 'FT-2026-0842', document: 'Transcript of Records (TOR)', copies: 1, submitted: '2026-09-24', pickup: '2026-10-02', time: '9:00 AM – 11:00 AM', status: 'Processing', purpose: 'Further studies' },
       { id: 'FT-2026-0817', document: 'Certificate of Enrollment (COE)', copies: 2, submitted: '2026-09-18', pickup: '2026-09-25', time: '1:00 PM – 3:00 PM', status: 'Ready for pick-up', purpose: 'Scholarship application' },
@@ -419,6 +485,18 @@
     }
     document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => navigate(button.dataset.view)));
     document.querySelectorAll('[data-go]').forEach(button => button.addEventListener('click', () => navigate(button.dataset.go)));
+    document.getElementById('login-form').addEventListener('submit', event => {
+      event.preventDefault();
+      if (!event.currentTarget.reportValidity()) return;
+      sessionStorage.setItem(sessionKey, 'active');
+      event.currentTarget.reset();
+      document.body.classList.add('is-authenticated');
+    });
+    document.getElementById('logout-button').addEventListener('click', () => {
+      sessionStorage.removeItem(sessionKey);
+      document.body.classList.remove('is-authenticated');
+      navigate('dashboard');
+    });
     document.getElementById('request-search').addEventListener('input', renderTable);
     document.getElementById('status-filter').addEventListener('change', renderTable);
     document.getElementById('request-form').addEventListener('submit', event => {
